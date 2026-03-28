@@ -1,0 +1,84 @@
+--- Starting Game 100000 of 100000 ---
+Game Started!
+ | |
+-----
+ | |
+-----
+ | |
+-----
+Random player X played at row 1, col 2
+ | |
+-----
+ | |X
+-----
+ | |
+-----
+Random player O played at row 0, col 2
+ | |O
+-----
+ | |X
+-----
+ | |
+-----
+Random player X played at row 1, col 0
+ | |O
+-----
+X| |X
+-----
+ | |
+-----
+Random player O played at row 2, col 2
+ | |O
+-----
+X| |X
+-----
+ | |O
+-----
+Random player X played at row 0, col 0
+X| |O
+-----
+X| |X
+-----
+ | |O
+-----
+Random player O played at row 0, col 1
+X|O|O
+-----
+X| |X
+-----
+ | |O
+-----
+Random player X played at row 2, col 1
+X|O|O
+-----
+X| |X
+-----
+ |X|O
+-----
+Random player O played at row 2, col 0
+X|O|O
+-----
+X| |X
+-----
+O|X|O
+-----
+Random player X played at row 1, col 1
+X|O|O
+-----
+X|X|X
+-----
+O|X|O
+-----
+
+*** Player X wins! ***
+
+
+==============================
+     TOURNAMENT RESULTS
+==============================
+Total Games Played: 100000
+------------------------------
+Player 1 ('X') Wins : 58318
+Player 2 ('O') Wins : 28942
+Ties                : 12740
+==============================
