@@ -3,7 +3,7 @@ import random
 
 # Global variable defining the board size (NxN).
 # You can change it to 4, 5, or any other integer to play on a larger board!
-BOARD_SIZE = 5
+BOARD_SIZE = 3
 
 class Tournament:
     def __init__(self, player1_type, player2_type, num_games):
