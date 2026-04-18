@@ -1,6 +1,10 @@
 import numpy as np
 import random
 
+# Global variable defining the board size (NxN).
+# You can change it to 4, 5, or any other integer to play on a larger board!
+BOARD_SIZE = 5
+
 class Tournament:
     def __init__(self, player1_type, player2_type, num_games):
         # 1. Initialize attributes
@@ -134,7 +138,7 @@ class Game:
         # 2. Main game loop
         # Runs the main game loop until the game ends and returns the winner
         print("Game Started!")
-        self.board.print_board()
+        #self.board.print_board()
 
         while True:
             # Execute the turn for the current player
@@ -158,19 +162,19 @@ class Game:
 class Board:
     def __init__(self):
         # 1. Initialize an empty board
-        # A 3x3 2D array using numpy. 
+        # A NxN 2D array using numpy. 
         # 0 represents an empty space, 1 represents 'X', 2 represents 'O'
-        self.game_board = np.zeros((3, 3), dtype=int)
+        self.game_board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype=int)
 
     def print_board(self):
         # 2. Print the current board to the console with separators ('|') between cells
-        # We use a dictionary to map the numbers to their string representations for readability
+        # map the numbers to their string representations for readability
         symbols = {0: ' ', 1: 'X', 2: 'O'}
         for row in self.game_board:
             # Convert each value in the row to the corresponding character and join with '|'
             row_str = '|'.join([symbols[val] for val in row])
             print(row_str)
-            print("-" * 5) # Separator line between rows for a clearer display
+            print("-" * (BOARD_SIZE * 2 - 1)) # Separator line between rows
 
     def is_move_valid(self, move):
         # 3. Check if the requested move is valid
@@ -180,7 +184,7 @@ class Board:
         
         row, col = move
         # Check if the coordinates are within the board boundaries
-        if 0 <= row < 3 and 0 <= col < 3:
+        if 0 <= row < BOARD_SIZE and 0 <= col < BOARD_SIZE:
             # The move is valid only if the spot is empty (contains 0)
             if self.game_board[row, col] == 0:
                 return True
@@ -199,7 +203,7 @@ class Board:
         # A win is defined as 3 consecutive marks in a row, column, or diagonal.
         
         # Check rows and columns
-        for i in range(3):
+        for i in range(BOARD_SIZE):
             if np.all(self.game_board[i, :] == player): # Full row for the player
                 return True
             if np.all(self.game_board[:, i] == player): # Full column for the player
@@ -227,25 +231,20 @@ class Board:
         # 8. Return a list of all empty places on the board
         # Returns a list of lists containing the coordinates of empty cells
         empty_places = []
-        for i in range(3):
-            for j in range(3):
+        for i in range(BOARD_SIZE):
+            for j in range(BOARD_SIZE):
                 if self.game_board[i, j] == 0:
                     empty_places.append([i, j])
         return empty_places
 
-    def get_str_board(self):
-        # 9. Return a string representation of the board (for saving or displaying)
-        # The string will contain the numbers from the board ordered by rows, left to right.
-        # This flattens the 2D array into a 1D array and joins it into a single continuous string.
-        return "".join(str(val) for val in self.game_board.flatten())
-
 if __name__ == "__main__":
-    # Example: Run a tournament of 5 games between two Random players
+    # Example: Run a tournament of N games between two Random players
     # Using the constants we defined in the Game class (Game.RANDOM_PLAYER = 2)
-    tic_tac_toe = Tournament(player1_type=2, player2_type=2, num_games=100000)
+    tic_tac_toe = Tournament(player1_type=2, player2_type=2, num_games=1)
     
     # Start the tournament
     tic_tac_toe.start_a_tournament()
     
     # Print the final summary
     tic_tac_toe.print_results()
+    
