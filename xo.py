@@ -2,8 +2,13 @@ import numpy as np
 import random
 
 # Global variable defining the board size (NxN).
-# You can change it to 4, 5, or any other integer to play on a larger board!
+# It's possible to change it to 4, 5, or any other integer to play on a larger board!
 BOARD_SIZE = 3
+DISCOUNT_RATE = 0.9
+WIN_SCORE = 1
+TIE_SCORE = 0.5
+LOOSE_SCORE = -1
+TOTAL_GAMES = 1
 
 class Tournament:
     def __init__(self, player1_type, player2_type, num_games):
@@ -30,18 +35,13 @@ class Tournament:
             print(f"\n--- Starting Game {current_game + 1} of {self.num_games} ---")
             
             # Create a fresh instance of the Game for each round
-            game = Game(self.player1_type, self.player2_type)
+            game = Game(self.player1_type, self.player2_type, DISCOUNT_RATE, WIN_SCORE, TIE_SCORE, LOOSE_SCORE)
             
             # Play the game and get the result ('X', 'O', or 'Tie')
             winner = game.play_game()
             
             # Update the results dictionary with the outcome of the current game
-            if winner == 'X':
-                self.results['X'] += 1
-            elif winner == 'O':
-                self.results['O'] += 1
-            else:
-                self.results['Tie'] += 1
+            self.results[winner] += 1
 
     def print_results(self):
         # 3. Print the tournament results in an organized way
@@ -60,7 +60,7 @@ class Game:
     HUMAN_PLAYER = 1
     RANDOM_PLAYER = 2
 
-    def __init__(self, player1_type, player2_type):
+    def __init__(self, player1_type, player2_type, gamma, win_score, tie_score, loose_score):
         # 1. Initialization
         # board: An instance of the Board class
         self.board = Board()
@@ -68,7 +68,14 @@ class Game:
         # player1/player2: Values representing the type of players (Human or Random)
         self.player1 = player1_type
         self.player2 = player2_type
-        
+
+        # smart agent data variables
+        self.win_score = win_score
+        self.tie_score = tie_score 
+        self.loose_score = loose_score 
+        self.gamma = gamma # decision rate
+        self.game_history = []
+
         # current_player: The sign of the current player ('X' or 'O').
         # player1 will always be the first and gets the marker 'X'
         self.current_player = 'X'
@@ -131,6 +138,19 @@ class Game:
             return True
             
         return False
+    
+    # decision rate (gamma) calculation per each board by reverse order 
+    def update_scores(self):
+        prev_board_gamma = 0
+        game_history_length = len(self.game_history)
+
+        print("\nThe game_history image after calculation:\n")
+        for index, row in enumerate(reversed(self.game_history)):
+            # don't change gamma value in the last board
+            if (game_history_length - index) != game_history_length: 
+                row['gm'] = prev_board_gamma * self.gamma
+            prev_board_gamma = row['gm']
+            print(row)
 
     # -----------------------------------------------------------
 
@@ -138,7 +158,8 @@ class Game:
         # 2. Main game loop
         # Runs the main game loop until the game ends and returns the winner
         print("Game Started!")
-        #self.board.print_board()
+        self.game_history.clear()
+        winner = ''
 
         while True:
             # Execute the turn for the current player
@@ -152,12 +173,21 @@ class Game:
                 # Return the winner ('X' or 'O') or 'Tie'
                 player_num = 1 if self.current_player == 'X' else 2
                 if self.board.is_winner(player_num):
-                    return self.current_player
+                    grade = self.win_score if self.current_player == 'X' else self.loose_score
+                    winner = self.current_player
                 else:
-                    return "Tie"
+                    grade = self.tie_score
+                    winner = "Tie"
+
+                self.game_history.append({'bd': self.board.game_board.tolist(), 'gm': grade})
+                self.update_scores()
+                return winner
             
             # Switch turns for the next loop iteration
             self.current_player = 'O' if self.current_player == 'X' else 'X'
+
+            # save turns (boards)
+            self.game_history.append({'bd': self.board.game_board.tolist()})
 
 class Board:
     def __init__(self):
@@ -240,7 +270,7 @@ class Board:
 if __name__ == "__main__":
     # Example: Run a tournament of N games between two Random players
     # Using the constants we defined in the Game class (Game.RANDOM_PLAYER = 2)
-    tic_tac_toe = Tournament(player1_type=2, player2_type=2, num_games=1)
+    tic_tac_toe = Tournament(player1_type=2, player2_type=2, num_games=TOTAL_GAMES)
     
     # Start the tournament
     tic_tac_toe.start_a_tournament()
