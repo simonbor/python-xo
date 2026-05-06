@@ -1,0 +1,24 @@
+--- Starting Game 1000000 of 1000000 ---
+Game Started!
+Random player X played at row 0, col 1
+Random player O played at row 1, col 0
+Random player X played at row 1, col 2
+Random player O played at row 1, col 1
+Random player X played at row 2, col 0
+Random player O played at row 0, col 0
+Random player X played at row 2, col 2
+Random player O played at row 2, col 1
+Random player X played at row 0, col 2
+
+*** Player X wins! ***
+
+
+==============================
+     TOURNAMENT RESULTS     
+==============================
+Total Games Played: 1000000
+------------------------------
+Player 1 ('X') Wins : 585423
+Player 2 ('O') Wins : 287963
+Ties                : 126614
+==============================

@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import json
 
 # Global variable defining the board size (NxN).
 # It's possible to change it to 4, 5, or any other integer to play on a larger board!
@@ -8,18 +9,22 @@ DISCOUNT_RATE = 0.9
 WIN_SCORE = 1
 TIE_SCORE = 0.5
 LOOSE_SCORE = -1
+JSON_FILE_NAME = "data.json"
+PRINT_LOGS = False
 TOTAL_GAMES = 1
 
 class Tournament:
-    def __init__(self, player1_type, player2_type, num_games):
+    def __init__(self, player1_type, player2_type, num_games, gamma):
         # 1. Initialize attributes
         # Store the types of the two players (e.g., Human or Random)
         self.player1_type = player1_type
         self.player2_type = player2_type
         
-        # Store the total number of games to be played in the tournament
+        # Store the total number of games to be played in becoming tournament
         self.num_games = num_games
-        
+        self.gamma = gamma
+        self.scoreboards = self.load_scoreboards(JSON_FILE_NAME)
+
         # Dictionary to store the tournament results (wins for each player and ties)
         # Based on the Game class, Player 1 is always 'X' and Player 2 is always 'O'
         self.results = {
@@ -27,6 +32,34 @@ class Tournament:
             'O': 0,    # Wins for Player 2
             'Tie': 0   # Number of tied games
         }
+    
+    # load and return JSON from a proj file
+    def load_scoreboards(self, json_file_name):
+        try:
+            with open(json_file_name, 'r') as file:
+                return json.load(file)
+        except FileNotFoundError:
+            return {}
+
+    # update the boards in the scoreboards with a count and score per each board
+    def update_scoreboards(self, game_history):
+        for row in game_history:
+            key = "".join(str(item) for sublist in row["bd"] for item in sublist)
+            value = row["gm"]
+
+            if (self.scoreboards.get(key, 'n/a') == 'n/a'):
+                self.scoreboards[key] = [value, 1]
+            else:
+                arr = self.scoreboards[key]
+                arr[1] = arr[1] + 1
+                arr[0] = ((arr[0] * arr[1]) + value) / arr[1]
+                self.scoreboards[key] = arr
+
+    # store the self.scoreboards to file data.json
+    def save_scoreboards(self):
+        with open(JSON_FILE_NAME, 'w') as file:
+            # further param indent=4 makes the JSON file formatted for easy read
+            json.dump(self.scoreboards, file)
 
     def start_a_tournament(self):
         # 2. Run the tournament
@@ -35,13 +68,14 @@ class Tournament:
             print(f"\n--- Starting Game {current_game + 1} of {self.num_games} ---")
             
             # Create a fresh instance of the Game for each round
-            game = Game(self.player1_type, self.player2_type, DISCOUNT_RATE, WIN_SCORE, TIE_SCORE, LOOSE_SCORE)
+            game = Game(self.player1_type, self.player2_type, self.gamma, WIN_SCORE, TIE_SCORE, LOOSE_SCORE)
             
             # Play the game and get the result ('X', 'O', or 'Tie')
             winner = game.play_game()
-            
-            # Update the results dictionary with the outcome of the current game
             self.results[winner] += 1
+            self.update_scoreboards(game.game_history)
+
+        self.save_scoreboards()
 
     def print_results(self):
         # 3. Print the tournament results in an organized way
@@ -144,13 +178,13 @@ class Game:
         prev_board_gamma = 0
         game_history_length = len(self.game_history)
 
-        print("\nThe game_history image after calculation:\n")
+        if(PRINT_LOGS): print("\nThe game_history image after calculation:\n")
         for index, row in enumerate(reversed(self.game_history)):
             # don't change gamma value in the last board
             if (game_history_length - index) != game_history_length: 
                 row['gm'] = prev_board_gamma * self.gamma
             prev_board_gamma = row['gm']
-            print(row)
+            if (PRINT_LOGS): print(row)
 
     # -----------------------------------------------------------
 
@@ -166,7 +200,7 @@ class Game:
             self._execute_turn()
             
             # Show the board after the move
-            self.board.print_board()
+            if(PRINT_LOGS): self.board.print_board()
 
             # Check if the game is over
             if self._check_game_over_and_show_result():
@@ -270,11 +304,11 @@ class Board:
 if __name__ == "__main__":
     # Example: Run a tournament of N games between two Random players
     # Using the constants we defined in the Game class (Game.RANDOM_PLAYER = 2)
-    tic_tac_toe = Tournament(player1_type=2, player2_type=2, num_games=TOTAL_GAMES)
+    tournament = Tournament(player1_type=Game.RANDOM_PLAYER, player2_type=Game.RANDOM_PLAYER, num_games=TOTAL_GAMES, gamma=DISCOUNT_RATE)
     
     # Start the tournament
-    tic_tac_toe.start_a_tournament()
+    tournament.start_a_tournament()
     
     # Print the final summary
-    tic_tac_toe.print_results()
+    tournament.print_results()
     
