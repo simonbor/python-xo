@@ -8,7 +8,7 @@ BOARD_SIZE = 3
 DISCOUNT_RATE = 0.9
 WIN_SCORE = 1
 TIE_SCORE = 0.5
-LOOSE_SCORE = -1
+LOOSE_SCORE = 0.1
 JSON_FILE_NAME = "data.json"
 PRINT_LOGS = False
 TOTAL_GAMES = 1
@@ -49,11 +49,14 @@ class Tournament:
 
             if (self.scoreboards.get(key, 'n/a') == 'n/a'):
                 self.scoreboards[key] = [value, 1]
+            elif (value in {WIN_SCORE, TIE_SCORE, LOOSE_SCORE}):
+                scoreBoard = self.scoreboards[key]
+                scoreBoard[1] = scoreBoard[1] + 1
             else:
-                arr = self.scoreboards[key]
-                arr[1] = arr[1] + 1
-                arr[0] = ((arr[0] * arr[1]) + value) / arr[1]
-                self.scoreboards[key] = arr
+                scoreBoard = self.scoreboards[key]
+                scoreBoard[0] = ((scoreBoard[0] * scoreBoard[1]) + value) / (scoreBoard[1] + 1)
+                scoreBoard[1] = scoreBoard[1] + 1
+                self.scoreboards[key] = scoreBoard
 
     # store the self.scoreboards to file data.json
     def save_scoreboards(self):
@@ -77,8 +80,8 @@ class Tournament:
 
         self.save_scoreboards()
 
+    # 3. Print the tournament results in an organized way
     def print_results(self):
-        # 3. Print the tournament results in an organized way
         print("\n" + "="*30)
         print("     TOURNAMENT RESULTS     ")
         print("="*30)
