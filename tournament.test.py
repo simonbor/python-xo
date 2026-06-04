@@ -49,6 +49,24 @@ class TestTournament(unittest.TestCase):
         self.assertIn(expected_key, self.tournament.scoreboards)
         self.assertEqual(self.tournament.scoreboards[expected_key], [1, 1])
 
+    def test_update_scoreboards_existing_board_win_score(self):
+        key = "100000000"
+        gm = WIN_SCORE # TIE_SCORE, LOOSE_SCORE
+
+        self.tournament.scoreboards = {
+            key: [0.5, 2]
+        }
+
+        game_history = [{ "bd": [[1, 0, 0], [0, 0, 0], [0, 0, 0]], "gm": gm }]
+
+        self.tournament.update_scoreboards(game_history)
+
+        updated_score, updated_count = self.tournament.scoreboards[key]
+
+        self.assertEqual(updated_score, 0.5)
+        self.assertEqual(updated_count, 3)
+
+    # @unittest.skip("Temporarily disabled")
     def test_update_scoreboards_existing_board(self):
         key = "100000000"
 
@@ -56,7 +74,7 @@ class TestTournament(unittest.TestCase):
             key: [0.5, 2]
         }
 
-        game_history = [{ "bd": [[1, 0, 0], [0, 0, 0], [0, 0, 0]], "gm": 1 }]
+        game_history = [{ "bd": [[1, 0, 0], [0, 0, 0], [0, 0, 0]], "gm": 0.2 }]
 
         self.tournament.update_scoreboards(game_history)
 
@@ -64,7 +82,7 @@ class TestTournament(unittest.TestCase):
 
         self.assertEqual(updated_count, 3)
 
-        expected_average = ((0.5 * 3) + 1) / 3
+        expected_average = ((0.5 * 2) + 0.2) / 3
         self.assertAlmostEqual(updated_score, expected_average)
 
     @patch("builtins.open", new_callable=mock_open)
