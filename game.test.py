@@ -64,6 +64,35 @@ class TestGame(unittest.TestCase):
         self.game.play_random_turn('O')
         mock_choice.assert_not_called()
 
+    def test_smart_decision_empty_dict(self):
+        # With an empty dictionary, all moves have a score of 0.
+        # It should pick the first evaluated move.
+        move = self.game.smart_decision('X', {})
+        self.assertEqual(move, [0, 0])
+
+    def test_smart_decision_with_scores(self):
+        # Mocking a dictionary where [1, 1] gives the highest score
+        sim_board1 = np.zeros((3, 3), dtype=int)
+        sim_board1[0, 0] = 1
+        key1 = "".join(str(item) for sublist in sim_board1.tolist() for item in sublist)
+
+        sim_board2 = np.zeros((3, 3), dtype=int)
+        sim_board2[1, 1] = 1
+        key2 = "".join(str(item) for sublist in sim_board2.tolist() for item in sublist)
+
+        dictionary = {
+            key1: [0.2, 1], 
+            key2: [0.9, 1]
+        }
+        
+        move = self.game.smart_decision('X', dictionary)
+        self.assertEqual(move, [1, 1])
+
+    def test_smart_decision_no_moves(self):
+        self.game.board.game_board.fill(1) # Board full
+        move = self.game.smart_decision('X', {})
+        self.assertIsNone(move)
+
     @patch.object(Game, 'play_human_turn')
     def test_execute_turn_human(self, mock_play_human):
         self.game.current_player = 'X'
