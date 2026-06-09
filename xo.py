@@ -14,6 +14,7 @@ LOOSE_SCORE = 0.1
 JSON_FILE_NAME = "data.json"
 PRINT_BOARDS = True
 PRINT_SCORE_HISTORY =  False
+SAVE_SCOREBOARDS = False
 
 class Tournament:
     def __init__(self, player1_type, player2_type, num_games, gamma):
@@ -63,6 +64,9 @@ class Tournament:
 
     # store the self.scoreboards to file data.json
     def save_scoreboards(self):
+        if (not SAVE_SCOREBOARDS):
+            return
+        
         with open(JSON_FILE_NAME, 'w') as file:
             # further param indent=4 makes the JSON file formatted for easy read
             json.dump(self.scoreboards, file)
@@ -102,19 +106,15 @@ class Game:
     SMART_AGENT = 3
 
     def __init__(self, player1_type, player2_type, gamma, win_score, tie_score, loose_score, score_boards):
-        # 1. Initialization
-        # board: An instance of the Board class
         self.board = Board()
-        
-        # player1/player2: Values representing the type of players (Human or Random)
         self.player1 = player1_type
         self.player2 = player2_type
 
-        # smart agent data variables
         self.win_score = win_score
         self.tie_score = tie_score 
         self.loose_score = loose_score 
         self.gamma = gamma # decision rate
+
         self.game_history = []
         self.score_boards = score_boards
 
@@ -123,8 +123,6 @@ class Game:
         self.current_player = 'X'
 
     def play_human_turn(self, sign):
-        # 3. Run a human player's turn
-        # Get the integer representation for the Board class (1 for 'X', 2 for 'O')
         player_num = 1 if sign == 'X' else 2
         
         while True:
@@ -143,15 +141,11 @@ class Game:
                 print("Invalid input format. Please enter two numbers separated by a space.")
 
     def play_random_turn(self, sign):
-        # 4. Run a random player's turn
-        # Get the integer representation for the Board class
         player_num = 1 if sign == 'X' else 2
-        
-        # Get a list of available empty places
         empty_places = self.board.get_empty_places()
         
+        # Randomly choose an empty cell and place the sign
         if empty_places:
-            # Randomly choose an empty cell and place the sign
             move = random.choice(empty_places)
             self.board.perform_move(move, player_num)
             print(f"Random player {sign} played at row {move[0]}, col {move[1]}")
@@ -202,8 +196,8 @@ class Game:
 
     # --- Helper Functions (as suggested in the instructions) ---
 
+    # Helper function: Executes the current player's turn
     def _execute_turn(self):
-        # Helper function: Executes the current player's turn
         current_type = self.player1 if self.current_player == 'X' else self.player2
         
         if current_type == self.HUMAN_PLAYER:
@@ -213,8 +207,8 @@ class Game:
         elif current_type == self.SMART_AGENT:
             self.play_smart_agent_turn(self.current_player, self.score_boards)
 
+    # Helper function: Checks if the game ended (win or tie) and displays the result
     def _check_game_over_and_show_result(self):
-        # Helper function: Checks if the game ended (win or tie) and displays the result
         player_num = 1 if self.current_player == 'X' else 2
         
         if self.board.is_winner(player_num):
@@ -226,7 +220,7 @@ class Game:
             return True
             
         return False
-    
+
     # decision rate (gamma) calculation per each board by reverse order 
     def update_scores(self):
         prev_board_gamma = 0
@@ -279,20 +273,20 @@ class Game:
 
 class Board:
     def __init__(self):
-        # 1. Initialize an empty board
+        # Initialize an empty board
         # A NxN 2D array using numpy. 
         # 0 represents an empty space, 1 represents 'X', 2 represents 'O'
         self.game_board = np.zeros((BOARD_SIZE, BOARD_SIZE), dtype=int)
 
     def print_board(self):
-        # 2. Print the current board to the console with separators ('|') between cells
+        # Print the current board to the console with separators ('|') between cells
         # map the numbers to their string representations for readability
         symbols = {0: ' ', 1: 'X', 2: 'O'}
         for row in self.game_board:
             # Convert each value in the row to the corresponding character and join with '|'
             row_str = '|'.join([symbols[val] for val in row])
             print(row_str)
-            print("-" * (BOARD_SIZE * 2 - 1)) # Separator line between rows
+            print("-" * (BOARD_SIZE * 2 - 1)) # separator line between rows
 
     def is_move_valid(self, move):
         # 3. Check if the requested move is valid
@@ -326,7 +320,7 @@ class Board:
                 return True
             if np.all(self.game_board[:, i] == player): # Full column for the player
                 return True
-                
+
         # Check diagonals
         if np.all(np.diag(self.game_board) == player): # Main diagonal
             return True
@@ -336,17 +330,17 @@ class Board:
         return False
 
     def is_full(self):
-        # 6. Check if the board is full (no empty spaces)
+        # Check if the board is full (no empty spaces)
         # Returns True if there are no 0s left in the array
         return not np.any(self.game_board == 0)
 
     def is_tie(self):
-        # 7. Check if the game ended in a tie
+        # Check if the game ended in a tie
         # A tie occurs when the board is full and neither player 1 nor player 2 has won
         return self.is_full() and not self.is_winner(1) and not self.is_winner(2)
 
     def get_empty_places(self):
-        # 8. Return a list of all empty places on the board
+        # Return a list of all empty places on the board
         # Returns a list of lists containing the coordinates of empty cells
         empty_places = []
         for i in range(BOARD_SIZE):
@@ -356,13 +350,9 @@ class Board:
         return empty_places
 
 if __name__ == "__main__":
-    # Example: Run a tournament of N games between two Random players
-    # Using the constants we defined in the Game class (Game.RANDOM_PLAYER = 2)
-    tournament = Tournament(player1_type=Game.RANDOM_PLAYER, player2_type=Game.SMART_AGENT, num_games=TOTAL_GAMES, gamma=DISCOUNT_RATE)
+    # Example: Run a tournament of N games between two players
+    tournament = Tournament(player1_type=Game.SMART_AGENT, player2_type=Game.HUMAN_PLAYER, num_games=TOTAL_GAMES, gamma=DISCOUNT_RATE)
     
-    # Start the tournament
     tournament.start_a_tournament()
-    
-    # Print the final summary
     tournament.print_results()
     
