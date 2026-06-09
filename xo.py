@@ -4,14 +4,16 @@ import json
 
 # Global variable defining the board size (NxN).
 # It's possible to change it to 4, 5, or any other integer to play on a larger board!
+TOTAL_GAMES = 10
 BOARD_SIZE = 3
+RANDOM_SMART_RATIO = 0.3
 DISCOUNT_RATE = 0.9
 WIN_SCORE = 1
 TIE_SCORE = 0.5
 LOOSE_SCORE = 0.1
 JSON_FILE_NAME = "data.json"
-PRINT_LOGS = False
-TOTAL_GAMES = 1
+PRINT_BOARDS = True
+PRINT_SCORE_HISTORY =  False
 
 class Tournament:
     def __init__(self, player1_type, player2_type, num_games, gamma):
@@ -44,6 +46,7 @@ class Tournament:
     # update the boards in the scoreboards with a count and score per each board
     def update_scoreboards(self, game_history):
         for row in game_history:
+            # generate string key from 2D array board values
             key = "".join(str(item) for sublist in row["bd"] for item in sublist)
             value = row["gm"]
 
@@ -71,7 +74,7 @@ class Tournament:
             print(f"\n--- Starting Game {current_game + 1} of {self.num_games} ---")
             
             # Create a fresh instance of the Game for each round
-            game = Game(self.player1_type, self.player2_type, self.gamma, WIN_SCORE, TIE_SCORE, LOOSE_SCORE)
+            game = Game(self.player1_type, self.player2_type, self.gamma, WIN_SCORE, TIE_SCORE, LOOSE_SCORE, self.scoreboards)
             
             # Play the game and get the result ('X', 'O', or 'Tie')
             winner = game.play_game()
@@ -96,8 +99,9 @@ class Game:
     # Constants for player types
     HUMAN_PLAYER = 1
     RANDOM_PLAYER = 2
+    SMART_AGENT = 3
 
-    def __init__(self, player1_type, player2_type, gamma, win_score, tie_score, loose_score):
+    def __init__(self, player1_type, player2_type, gamma, win_score, tie_score, loose_score, score_boards):
         # 1. Initialization
         # board: An instance of the Board class
         self.board = Board()
@@ -112,6 +116,7 @@ class Game:
         self.loose_score = loose_score 
         self.gamma = gamma # decision rate
         self.game_history = []
+        self.score_boards = score_boards
 
         # current_player: The sign of the current player ('X' or 'O').
         # player1 will always be the first and gets the marker 'X'
@@ -151,6 +156,50 @@ class Game:
             self.board.perform_move(move, player_num)
             print(f"Random player {sign} played at row {move[0]}, col {move[1]}")
 
+    def play_smart_agent_turn(self, sign, dictionary):
+        player_num = 1 if sign == 'X' else 2
+        empty_places = self.board.get_empty_places()
+        
+        if not empty_places:
+            return None
+
+        # to make the game more dynamic and less predictable
+        # calculate the move by a correlation between random and smart decision 
+        if random.random() < RANDOM_SMART_RATIO:
+            move = random.choice(empty_places)
+        else:
+            move = self.smart_decision(sign, dictionary)
+            
+        self.board.perform_move(move, player_num)
+        print(f"Smart agent {sign} played at row {move[0]}, col {move[1]}")
+        return move
+
+    # Determine the right move for the smart agent
+    def smart_decision(self, sign, dictionary):
+        player_num = 1 if sign == 'X' else 2
+        empty_places = self.board.get_empty_places()
+        best_move = None
+        best_score = -float('inf') # Initialize best_score to negative infinity so any valid score will be higher
+
+        # Evaluate every possible move (every empty cell)
+        for move in empty_places:
+            # Create a simulation of the board to test the move
+            simulated_board = self.board.game_board.copy()
+            simulated_board[move[0], move[1]] = player_num
+
+            # generate string key from 2D array board values
+            key = "".join(str(item) for sublist in simulated_board.tolist() for item in sublist)
+
+            # if the board state exists, retrieve its score
+            score = dictionary[key][0] if key in dictionary else 0
+
+            # If this move results in a better score, update the best score and best move
+            if score > best_score:
+                best_score = score
+                best_move = move
+
+        return best_move
+
     # --- Helper Functions (as suggested in the instructions) ---
 
     def _execute_turn(self):
@@ -161,6 +210,8 @@ class Game:
             self.play_human_turn(self.current_player)
         elif current_type == self.RANDOM_PLAYER:
             self.play_random_turn(self.current_player)
+        elif current_type == self.SMART_AGENT:
+            self.play_smart_agent_turn(self.current_player, self.score_boards)
 
     def _check_game_over_and_show_result(self):
         # Helper function: Checks if the game ended (win or tie) and displays the result
@@ -181,13 +232,13 @@ class Game:
         prev_board_gamma = 0
         game_history_length = len(self.game_history)
 
-        if(PRINT_LOGS): print("\nThe game_history image after calculation:\n")
+        if(PRINT_SCORE_HISTORY): print("\nThe game_history image after calculation:\n")
         for index, row in enumerate(reversed(self.game_history)):
             # don't change gamma value in the last board
             if (game_history_length - index) != game_history_length: 
                 row['gm'] = prev_board_gamma * self.gamma
             prev_board_gamma = row['gm']
-            if (PRINT_LOGS): print(row)
+            if (PRINT_SCORE_HISTORY): print(row)
 
     # -----------------------------------------------------------
 
@@ -203,7 +254,7 @@ class Game:
             self._execute_turn()
             
             # Show the board after the move
-            if(PRINT_LOGS): self.board.print_board()
+            if(PRINT_BOARDS): self.board.print_board()
 
             # Check if the game is over
             if self._check_game_over_and_show_result():
@@ -307,7 +358,7 @@ class Board:
 if __name__ == "__main__":
     # Example: Run a tournament of N games between two Random players
     # Using the constants we defined in the Game class (Game.RANDOM_PLAYER = 2)
-    tournament = Tournament(player1_type=Game.RANDOM_PLAYER, player2_type=Game.RANDOM_PLAYER, num_games=TOTAL_GAMES, gamma=DISCOUNT_RATE)
+    tournament = Tournament(player1_type=Game.RANDOM_PLAYER, player2_type=Game.SMART_AGENT, num_games=TOTAL_GAMES, gamma=DISCOUNT_RATE)
     
     # Start the tournament
     tournament.start_a_tournament()

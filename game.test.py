@@ -11,9 +11,10 @@ class TestGame(unittest.TestCase):
             player1_type=Game.HUMAN_PLAYER,
             player2_type=Game.RANDOM_PLAYER,
             gamma=0.9,
-            win_score=1.0,
+            win_score=1,
             tie_score=0.5,
-            loose_score=0.1
+            loose_score=0.1,
+            score_boards={}
         )
 
     def test_init(self):
