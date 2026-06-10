@@ -4,7 +4,7 @@ import json
 
 # Global variable defining the board size (NxN).
 # It's possible to change it to 4, 5, or any other integer to play on a larger board!
-TOTAL_GAMES = 10
+TOTAL_GAMES = 1
 BOARD_SIZE = 3
 RANDOM_SMART_RATIO = 0.3
 DISCOUNT_RATE = 0.9
@@ -13,7 +13,7 @@ TIE_SCORE = 0.5
 LOOSE_SCORE = 0.1
 JSON_FILE_NAME = "data.json"
 PRINT_BOARDS = True
-PRINT_SCORE_HISTORY =  False
+PRINT_SCORE_HISTORY = False
 SAVE_SCOREBOARDS = False
 
 class Tournament:
@@ -166,14 +166,15 @@ class Game:
             
         self.board.perform_move(move, player_num)
         print(f"Smart agent {sign} played at row {move[0]}, col {move[1]}")
-        return move
 
     # Determine the right move for the smart agent
     def smart_decision(self, sign, dictionary):
         player_num = 1 if sign == 'X' else 2
         empty_places = self.board.get_empty_places()
         best_move = None
-        best_score = -float('inf') # Initialize best_score to negative infinity so any valid score will be higher
+        # Initialize best_score to negative infinity so any valid score will be higher
+        best_score = -float('inf') if(player_num == 1) else float('inf') 
+        
 
         # Evaluate every possible move (every empty cell)
         for move in empty_places:
@@ -188,9 +189,14 @@ class Game:
             score = dictionary[key][0] if key in dictionary else 0
 
             # If this move results in a better score, update the best score and best move
-            if score > best_score:
-                best_score = score
-                best_move = move
+            if player_num == 1: # Maximize score for player 1 ('X')
+                if score > best_score:
+                    best_score = score
+                    best_move = move
+            else: # Minimize score for player 2 ('O')
+                if score < best_score:
+                    best_score = score
+                    best_move = move
 
         return best_move
 
@@ -303,7 +309,7 @@ class Board:
         return False
 
     def perform_move(self, move, player):
-        # 4. Perform a valid move on the board for the given player
+        # Perform a valid move on the board for the given player
         if self.is_move_valid(move):
             row, col = move
             self.game_board[row, col] = player
@@ -311,7 +317,7 @@ class Board:
         return False # Returns False otherwise
 
     def is_winner(self, player):
-        # 5. Check if the given player won
+        # Check if the given player won
         # A win is defined as 3 consecutive marks in a row, column, or diagonal.
         
         # Check rows and columns
