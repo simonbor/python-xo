@@ -66,7 +66,6 @@ class TestTournament(unittest.TestCase):
         self.assertEqual(updated_score, 0.5)
         self.assertEqual(updated_count, 3)
 
-    # @unittest.skip("Temporarily disabled")
     def test_update_scoreboards_existing_board(self):
         key = "100000000"
 
@@ -85,16 +84,17 @@ class TestTournament(unittest.TestCase):
         expected_average = ((0.5 * 2) + 0.2) / 3
         self.assertAlmostEqual(updated_score, expected_average)
 
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("xo.SAVE_SCOREBOARDS", True)
     @patch("json.dump")
-    def test_save_scoreboards(self, mock_json_dump, mock_file):
+    @patch("builtins.open", new_callable=mock_open)
+    def test_save_scoreboards(self, mock_open, mock_json_dump):
         self.tournament.scoreboards = {
             "123": [1, 2]
         }
 
         self.tournament.save_scoreboards()
 
-        mock_file.assert_called_once_with("data.json", "w")
+        mock_open.assert_called_once_with("data.json", "w")
         mock_json_dump.assert_called_once()
 
     @patch("builtins.print")
