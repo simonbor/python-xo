@@ -1,6 +1,6 @@
 from xo_lib.tournament import Tournament
 from xo_lib.game import Game
-from xo_lib.config import TOTAL_GAMES, DISCOUNT_RATE
+from config import TOTAL_GAMES, DISCOUNT_RATE
 
 if __name__ == "__main__":
     # Example: Run a tournament of N games between two players

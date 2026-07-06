@@ -1,6 +1,6 @@
 import random
 from xo_lib.board import Board
-from xo_lib.config import (
+from config import (
     RANDOM_SMART_RATIO,
     PRINT_BOARDS,
     PRINT_SCORE_HISTORY

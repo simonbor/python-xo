@@ -1,5 +1,5 @@
 import numpy as np
-from xo_lib.config import BOARD_SIZE
+from config import BOARD_SIZE
 
 class Board:
     def __init__(self):

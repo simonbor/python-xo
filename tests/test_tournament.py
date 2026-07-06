@@ -9,7 +9,7 @@ from xo_lib import (
     Game,
     Board,
 )
-from xo_lib.config import (
+from config import (
     BOARD_SIZE,
     WIN_SCORE,
     TIE_SCORE,

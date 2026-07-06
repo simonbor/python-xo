@@ -1,6 +1,6 @@
 import json
 from xo_lib.game import Game
-from xo_lib.config import (
+from config import (
     WIN_SCORE,
     TIE_SCORE,
     LOOSE_SCORE,
