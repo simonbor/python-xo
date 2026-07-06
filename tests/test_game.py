@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 import numpy as np
 import io
 
-from xo import Game, Board
+from xo_lib import Game, Board
 
 class TestGame(unittest.TestCase):
     def setUp(self):

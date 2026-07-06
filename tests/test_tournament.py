@@ -4,10 +4,12 @@ import numpy as np
 import json
 
 # Replace `tic_tac_toe` with the actual filename (without .py)
-from xo import (
+from xo_lib import (
     Tournament,
     Game,
     Board,
+)
+from xo_lib.config import (
     BOARD_SIZE,
     WIN_SCORE,
     TIE_SCORE,
@@ -84,7 +86,7 @@ class TestTournament(unittest.TestCase):
         expected_average = ((0.5 * 2) + 0.2) / 3
         self.assertAlmostEqual(updated_score, expected_average)
 
-    @patch("xo.SAVE_SCOREBOARDS", True)
+    @patch("xo_lib.tournament.SAVE_SCOREBOARDS", True)
     @patch("json.dump")
     @patch("builtins.open", new_callable=mock_open)
     def test_save_scoreboards(self, mock_open, mock_json_dump):

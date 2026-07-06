@@ -4,7 +4,7 @@ from unittest.mock import patch
 import io
 
 # Make sure to import your Board class here if it's in a different file
-from xo import Board
+from xo_lib import Board
 
 class TestBoard(unittest.TestCase):
     def setUp(self):
