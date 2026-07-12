@@ -48,6 +48,7 @@ class Tournament:
             elif (value in {WIN_SCORE, TIE_SCORE, LOOSE_SCORE}):
                 scoreBoard = self.scoreboards[key]
                 scoreBoard[1] = scoreBoard[1] + 1
+                self.scoreboards[key] = scoreBoard
             else:
                 scoreBoard = self.scoreboards[key]
                 scoreBoard[0] = ((scoreBoard[0] * scoreBoard[1]) + value) / (scoreBoard[1] + 1)

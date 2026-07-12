@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/xo.py",
+            // "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["--input", "data.csv"],
+            "python": "C:/Users/Simon/.conda/envs/tf/python.exe",
+        }
+    ]
+}

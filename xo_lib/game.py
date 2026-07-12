@@ -1,16 +1,19 @@
 import random
 from xo_lib.board import Board
 from config import (
+    MODEL_FILE_NAME,
     RANDOM_SMART_RATIO,
     PRINT_BOARDS,
     PRINT_SCORE_HISTORY
 )
+from tensorflow.keras.models import load_model as keras_load_model
 
 class Game:
     # Constants for player types
     HUMAN_PLAYER = 1
     RANDOM_PLAYER = 2
     SMART_AGENT = 3
+    NETWORK_AGENT = 4
 
     def __init__(self, player1_type, player2_type, gamma, win_score, tie_score, loose_score, score_boards):
         self.board = Board()
@@ -28,6 +31,16 @@ class Game:
         # current_player: The sign of the current player ('X' or 'O').
         # player1 will always be the first and gets the marker 'X'
         self.current_player = 'X'
+        self.model = self.load_model()
+
+    def load_model(self):
+        try:
+            model = keras_load_model(MODEL_FILE_NAME)
+            print(f"Model '{MODEL_FILE_NAME}' loaded successfully.")
+            return model
+        except Exception as e:
+            print(f"Error loading model '{MODEL_FILE_NAME}': {e}")
+            return None
 
     def play_human_turn(self, sign):
         player_num = 1 if sign == 'X' else 2
@@ -57,6 +70,50 @@ class Game:
             self.board.perform_move(move, player_num)
             print(f"Random player {sign} played at row {move[0]}, col {move[1]}")
 
+    def play_network_agent_turn(self, sign):
+        player_num = 1 if sign == 'X' else 2
+        empty_places = self.board.get_empty_places()
+        
+        if not empty_places:
+            return None
+        
+        # Use the neural network model to predict the best move
+        move = self.network_decision(sign, empty_places)
+
+        self.board.perform_move(move, player_num)
+        print(f"Network agent {sign} played at row {move[0]}, col {move[1]}")
+
+    # Determine the right move for the network agent
+    def network_decision(self, sign, empty_places):
+        player_num = 1 if sign == 'X' else 2
+        best_move = None
+        best_score = -float('inf') if(player_num == 1) else float('inf')
+
+        # Evaluate every possible move (every empty cell)
+        for move in empty_places:
+            # Create a simulation of the board to test the move
+            simulated_board = self.board.game_board.copy()
+            simulated_board[move[0], move[1]] = player_num
+
+            # The model expects a flattened board, reshaped for a single prediction
+            board_state = simulated_board.flatten().reshape(1, 9)
+            board_state[board_state == 2] = -1  # Convert 'O' (2) to -1 for the model
+            
+            # Get the score for this board state from the neural network
+            score = self.model.predict(board_state, verbose=0)[0][0]
+
+            # If this move results in a better score, update the best score and best move
+            if player_num == 1:  # Maximize score for player 1 ('X')
+                if score > best_score:
+                    best_score = score
+                    best_move = move
+            else:  # Minimize score for player 2 ('O')
+                if score < best_score:
+                    best_score = score
+                    best_move = move
+
+        return best_move
+
     def play_smart_agent_turn(self, sign, dictionary):
         player_num = 1 if sign == 'X' else 2
         empty_places = self.board.get_empty_places()
@@ -81,7 +138,6 @@ class Game:
         best_move = None
         # Initialize best_score to negative infinity so any valid score will be higher
         best_score = -float('inf') if(player_num == 1) else float('inf') 
-        
 
         # Evaluate every possible move (every empty cell)
         for move in empty_places:
@@ -119,6 +175,8 @@ class Game:
             self.play_random_turn(self.current_player)
         elif current_type == self.SMART_AGENT:
             self.play_smart_agent_turn(self.current_player, self.score_boards)
+        elif current_type == self.NETWORK_AGENT:
+            self.play_network_agent_turn(self.current_player)
 
     # Helper function: Checks if the game ended (win or tie) and displays the result
     def _check_game_over_and_show_result(self):

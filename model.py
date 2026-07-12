@@ -94,8 +94,8 @@ print("Predictions for the first 5 rows:", predictions)
 
 # Print the learned weights
 weights = model.get_weights()
-# print("Learned Weights and Bias:")
-# print(f"Weights: {weights[0].flatten()}, Bias: {weights[1][0]}")
+print("Learned Weights and Bias:")
+print(f"Weights: {weights[0].flatten()}, Bias: {weights[1][0]}")
 
 # ------------------------------
 # Test the model with a sample board and its rotated version
@@ -124,16 +124,16 @@ print(f"Difference: {abs(pred_orig - pred_rot):.4f}")
 
 # A "Good" board for X (X has a winning row at the top)
 good_board = np.array([
-     1, 0, -1,
-    -1, 1,  1,
-    -1, 1, -1
+     1, -1, 1,
+    1, 1, -1,
+    -1, -1, 0
 ]).reshape(1, -1)
 
 # A "Bad" board for X (O has a winning row at the top)
 bad_board = np.array([
-    0,  0,  0,
-    1, -1,  0,
-    1, -1,  1
+    1,  0,  -1,
+    1, 0,  0,
+    0, 1,  -1
 ]).reshape(1, -1)
 
 # Predict scores
