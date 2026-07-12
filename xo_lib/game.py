@@ -36,7 +36,6 @@ class Game:
     def load_model(self):
         try:
             model = keras_load_model(MODEL_FILE_NAME)
-            print(f"Model '{MODEL_FILE_NAME}' loaded successfully.")
             return model
         except Exception as e:
             print(f"Error loading model '{MODEL_FILE_NAME}': {e}")

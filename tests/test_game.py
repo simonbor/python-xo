@@ -3,6 +3,12 @@ from unittest.mock import patch, MagicMock
 import numpy as np
 import io
 
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.modules['tensorflow'] = MagicMock()
+sys.modules['tensorflow.keras'] = MagicMock()
+sys.modules['tensorflow.keras.models'] = MagicMock()
 from xo_lib import Game, Board
 
 class TestGame(unittest.TestCase):

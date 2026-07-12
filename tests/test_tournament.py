@@ -1,19 +1,18 @@
 import unittest
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, MagicMock
 import numpy as np
 import json
 
-# Replace `tic_tac_toe` with the actual filename (without .py)
-from xo_lib import (
-    Tournament,
-    Game,
-    Board,
-)
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.modules['tensorflow'] = MagicMock()
+sys.modules['tensorflow.keras'] = MagicMock()
+sys.modules['tensorflow.keras.models'] = MagicMock()
+from xo_lib import Game, Tournament
+
 from config import (
-    BOARD_SIZE,
     WIN_SCORE,
-    TIE_SCORE,
-    LOOSE_SCORE
 )
 
 class TestTournament(unittest.TestCase):

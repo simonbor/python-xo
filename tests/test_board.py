@@ -2,8 +2,14 @@ import unittest
 import numpy as np
 from unittest.mock import patch
 import io
+from unittest.mock import patch, MagicMock
 
-# Make sure to import your Board class here if it's in a different file
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.modules['tensorflow'] = MagicMock()
+sys.modules['tensorflow.keras'] = MagicMock()
+sys.modules['tensorflow.keras.models'] = MagicMock()
 from xo_lib import Board
 
 class TestBoard(unittest.TestCase):
