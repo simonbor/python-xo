@@ -21,7 +21,7 @@ keys = list(data.keys())
 # Convert keys into a 2D NumPy array. a key example is '0100211200101020'
 X = np.array([[int(char) for char in key] for key in keys])
 
-# Replace all 2s with -1s
+# Normalize the data by replacing all 2s with -1s
 X[X == 2] = -1
 
 # Extract values into a parameter `y`
@@ -112,8 +112,8 @@ board_rot90 = np.rot90(board_3x3, k=1).flatten()
 pred_orig = model.predict(board_orig.reshape(1, -1))[0][0]
 pred_rot = model.predict(board_rot90.reshape(1, -1))[0][0]
 
-# print(f"Original Board Shape: {board_orig.reshape(3, 3)}")
-# print(f"Rotated Board Shape: {board_rot90.reshape(3, 3)}")
+print(f"Original Board Shape: {board_orig.reshape(3, 3)}")
+print(f"Rotated Board Shape: {board_rot90.reshape(3, 3)}")
 print(f"Original Board Score: {pred_orig:.4f}")
 print(f"Rotated Board Score: {pred_rot:.4f}")
 print(f"Difference: {abs(pred_orig - pred_rot):.4f}")
@@ -124,16 +124,16 @@ print(f"Difference: {abs(pred_orig - pred_rot):.4f}")
 
 # A "Good" board for X (X has a winning row at the top)
 good_board = np.array([
-     1, -1, 1,
-    1, 1, -1,
-    -1, -1, 0
+     1, -1,  1,
+     1,  1, -1,
+    -1, -1,  0
 ]).reshape(1, -1)
 
 # A "Bad" board for X (O has a winning row at the top)
 bad_board = np.array([
-    1,  0,  -1,
-    1, 0,  0,
-    0, 1,  -1
+     1,  0,  -1,
+     1,  0,   0,
+     0,  1,  -1
 ]).reshape(1, -1)
 
 # Predict scores

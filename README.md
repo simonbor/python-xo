@@ -1,17 +1,18 @@
 # Installation
-For setup, install and working with model you have to install the  TensorFlow - 
+For setup, installing and working with model, you have to install TensorFlow - 
 ```
 https://www.tensorflow.org/install/pip
 ```
 
 # Run
-before run start the conda env -
+Before running, start the conda env -
 ```
 conda activate tf
 ```
+after it just press F5
 
 # Run Unit Tests
-Run the unittests with VSCODE Testing plugin or just from command line -
+Run the unit tests with the VSCODE Testing plugin or just from the command line -
 ```
 python tests\test_board.py
 ```

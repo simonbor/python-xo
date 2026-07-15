@@ -1,6 +1,4 @@
-# Global variable defining the board size (NxN).
-# It's possible to change it to 4, 5, or any other integer to play on a larger board!
-TOTAL_GAMES = 10
+TOTAL_GAMES = 1
 BOARD_SIZE = 3
 RANDOM_SMART_RATIO = 0.3
 DISCOUNT_RATE = 0.9
