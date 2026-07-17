@@ -1,4 +1,5 @@
 import json
+import numpy as np
 from xo_lib.game import Game
 from config import (
     WIN_SCORE,
@@ -36,24 +37,34 @@ class Tournament:
         except FileNotFoundError:
             return {}
 
+    # Checks if a board state, or any of its rotations, already exists in the scoreboards.
+    def _does_board_exist(self, board):
+        # Generate and check keys for all 4 rotations
+        for i in range(4):
+            rotated_board = np.rot90(board, k=i)
+            rotated_key = "".join(map(str, rotated_board.flatten()))
+            if rotated_key in self.scoreboards:
+                return rotated_key
+        return ""
+
     # update the boards in the scoreboards with a count and score per each board
     def update_scoreboards(self, game_history):
         for row in game_history:
-            # generate string key from 2D array board values
-            key = "".join(str(item) for sublist in row["bd"] for item in sublist)
             value = row["gm"]
+            existing_key = self._does_board_exist(row["bd"])
 
-            if (self.scoreboards.get(key, 'n/a') == 'n/a'):
+            if (existing_key == ""):
+                key = "".join(str(item) for sublist in row["bd"] for item in sublist)
                 self.scoreboards[key] = [value, 1]
             elif (value in {WIN_SCORE, TIE_SCORE, LOOSE_SCORE}):
-                scoreBoard = self.scoreboards[key]
+                scoreBoard = self.scoreboards[existing_key]
                 scoreBoard[1] = scoreBoard[1] + 1
-                self.scoreboards[key] = scoreBoard
+                self.scoreboards[existing_key] = scoreBoard
             else:
-                scoreBoard = self.scoreboards[key]
+                scoreBoard = self.scoreboards[existing_key]
                 scoreBoard[0] = ((scoreBoard[0] * scoreBoard[1]) + value) / (scoreBoard[1] + 1)
                 scoreBoard[1] = scoreBoard[1] + 1
-                self.scoreboards[key] = scoreBoard
+                self.scoreboards[existing_key] = scoreBoard
 
     # store the self.scoreboards to file data.json
     def save_scoreboards(self):

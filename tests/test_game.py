@@ -175,18 +175,100 @@ class TestGame(unittest.TestCase):
     def test_play_game_multiple_turns(self, mock_stdout):
         self.game._check_game_over_and_show_result = MagicMock(side_effect=[False, True])
         self.game._execute_turn = MagicMock()
-        
+
         def is_winner_side_effect(player_num):
-            return player_num == 2
-        
+            # On the second call (which is the end of the game), player 'O' (2) wins.
+            return self.game.current_player == 'O'
+
         self.game.board.is_winner = MagicMock(side_effect=is_winner_side_effect)
 
         winner = self.game.play_game()
         self.assertEqual(winner, 'O')
         self.assertEqual(len(self.game.game_history), 2)
-        
+
         self.assertEqual(self.game.game_history[1]['gm'], self.game.loose_score)
         self.assertAlmostEqual(self.game.game_history[0]['gm'], self.game.loose_score * self.game.gamma)
+
+    @patch('xo_lib.game.keras_load_model')
+    def test_load_model_success(self, mock_keras_load_model):
+        mock_keras_load_model.return_value = MagicMock()
+        game = Game(1, 1, 0.9, 1, 0.5, 0.1, {})
+        self.assertIsNotNone(game.model)
+        mock_keras_load_model.assert_called_once()
+
+    @patch('xo_lib.game.keras_load_model', side_effect=Exception("Test error"))
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_load_model_failure(self, mock_stdout, mock_keras_load_model):
+        game = Game(1, 1, 0.9, 1, 0.5, 0.1, {})
+        self.assertIsNone(game.model)
+        self.assertIn("Error loading model", mock_stdout.getvalue())
+
+    @patch.object(Game, 'network_decision', return_value=(1, 1))
+    def test_play_network_agent_turn(self, mock_network_decision):
+        self.game.play_network_agent_turn('X')
+        mock_network_decision.assert_called_once()
+        self.assertEqual(self.game.board.game_board[1, 1], 1)
+
+    @patch.object(Game, 'network_decision')
+    def test_play_network_agent_turn_no_empty_places(self, mock_network_decision):
+        self.game.board.game_board.fill(1)
+        self.game.play_network_agent_turn('X')
+        mock_network_decision.assert_not_called()
+
+    def test_network_decision_player_x(self):
+        self.game.model = MagicMock()
+        self.game.model.predict.side_effect = [[[-0.5]], [[0.8]], [[0.2]]]
+
+        empty_places = [(0, 0), (1, 1), (2, 2)]
+        move = self.game.network_decision('X', empty_places)
+
+        self.assertEqual(move, (1, 1))
+
+    def test_network_decision_player_o(self):
+        self.game.model = MagicMock()
+        self.game.model.predict.side_effect = [[[-0.5]], [[0.8]], [[-0.9]]]
+
+        empty_places = [(0, 0), (1, 1), (2, 2)]
+        move = self.game.network_decision('O', empty_places)
+
+        self.assertEqual(move, (2, 2))
+
+    @patch('random.random', return_value=0.1) # Less than RANDOM_SMART_RATIO
+    @patch('random.choice', return_value=(1, 2))
+    def test_play_smart_agent_turn_random_move(self, mock_random_choice, mock_random_random):
+        self.game.play_smart_agent_turn('X', {})
+        mock_random_choice.assert_called_once()
+        self.assertEqual(self.game.board.game_board[1, 2], 1)
+
+    @patch('random.random', return_value=0.9) # More than RANDOM_SMART_RATIO
+    @patch.object(Game, 'smart_decision', return_value=(2, 1))
+    def test_play_smart_agent_turn_smart_move(self, mock_smart_decision, mock_random_random):
+        self.game.play_smart_agent_turn('X', {})
+        mock_smart_decision.assert_called_once()
+        self.assertEqual(self.game.board.game_board[2, 1], 1)
+
+    @patch.object(Game, 'smart_decision')
+    @patch('random.choice')
+    def test_play_smart_agent_turn_no_empty_places(self, mock_random_choice, mock_smart_decision):
+        self.game.board.game_board.fill(1)
+        self.game.play_smart_agent_turn('X', {})
+        mock_smart_decision.assert_not_called()
+        mock_random_choice.assert_not_called()
+
+    @patch.object(Game, 'play_smart_agent_turn')
+    def test_execute_turn_smart_agent(self, mock_play_smart_agent):
+        self.game.current_player = 'X'
+        self.game.player1 = Game.SMART_AGENT
+        self.game._execute_turn()
+        mock_play_smart_agent.assert_called_once_with('X', {})
+
+    @patch.object(Game, 'play_network_agent_turn')
+    def test_execute_turn_network_agent(self, mock_play_network_agent):
+        self.game.current_player = 'O'
+        self.game.player2 = Game.NETWORK_AGENT
+        self.game._execute_turn()
+        mock_play_network_agent.assert_called_once_with('O')
+
 
 if __name__ == '__main__':
     unittest.main()

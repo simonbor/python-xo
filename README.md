@@ -16,3 +16,7 @@ Run the unit tests with the VSCODE Testing plugin or just from the command line 
 ```
 python tests\test_board.py
 ```
+For running all the tests - 
+```
+python -m unittest discover tests
+```

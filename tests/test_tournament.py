@@ -12,6 +12,7 @@ sys.modules['tensorflow.keras.models'] = MagicMock()
 from xo_lib import Game, Tournament
 
 from config import (
+    JSON_FILE_NAME,
     WIN_SCORE,
 )
 
@@ -85,6 +86,30 @@ class TestTournament(unittest.TestCase):
         expected_average = ((0.5 * 2) + 0.2) / 3
         self.assertAlmostEqual(updated_score, expected_average)
 
+    def test_update_scoreboards_with_rotation(self):
+        # Board state and its 90-degree counter-clockwise rotation
+        board_orig_list = [[1, 2, 0], [0, 0, 0], [0, 0, 0]]
+        board_rot90_ccw_list = np.rot90(np.array(board_orig_list), k=1).tolist()
+        original_key = "120000000"
+
+        # Test adding a new board.
+        self.tournament.scoreboards = {}
+        game_history = [{"bd": board_orig_list, "gm": 0.8}]
+        self.tournament.update_scoreboards(game_history)
+
+        # Assert that the original key was used and only one entry exists.
+        self.assertEqual(len(self.tournament.scoreboards), 1)
+        self.assertIn(original_key, self.tournament.scoreboards)
+        self.assertEqual(self.tournament.scoreboards[original_key], [0.8, 1])
+
+        # Test adding an existing board via a rotated version.
+        game_history = [{"bd": board_rot90_ccw_list, "gm": 0.8}]
+        self.tournament.update_scoreboards(game_history)
+        
+        # Assert that the existing entry was updated and no new key was added.
+        self.assertEqual(len(self.tournament.scoreboards), 1)
+        self.assertIn(original_key, self.tournament.scoreboards)
+
     @patch("xo_lib.tournament.SAVE_SCOREBOARDS", True)
     @patch("json.dump")
     @patch("builtins.open", new_callable=mock_open)
@@ -95,7 +120,7 @@ class TestTournament(unittest.TestCase):
 
         self.tournament.save_scoreboards()
 
-        mock_open.assert_called_once_with("data.json", "w")
+        mock_open.assert_called_once_with(JSON_FILE_NAME, "w")
         mock_json_dump.assert_called_once()
 
     @patch("builtins.print")
