@@ -1,12 +1,12 @@
 import random
-from xo_lib.board import Board
+import numpy as np
+from xo_lib import Board
 from config import (
     MODEL_FILE_NAME,
     RANDOM_SMART_RATIO,
     PRINT_BOARDS,
     PRINT_SCORE_HISTORY
 )
-from tensorflow.keras.models import load_model as keras_load_model
 
 class Game:
     # Constants for player types
@@ -31,12 +31,18 @@ class Game:
         # current_player: The sign of the current player ('X' or 'O').
         # player1 will always be the first and gets the marker 'X'
         self.current_player = 'X'
-        self.model = self.load_model()
+        self.model = None
+        if self.player1 == self.NETWORK_AGENT or self.player2 == self.NETWORK_AGENT:
+            self.model = self.load_model()
 
     def load_model(self):
         try:
+            from tensorflow.keras.models import load_model as keras_load_model
             model = keras_load_model(MODEL_FILE_NAME)
             return model
+        except ImportError:
+            print("Warning: 'tensorflow' module not found. The Network Agent will not be available.")
+            return None
         except Exception as e:
             print(f"Error loading model '{MODEL_FILE_NAME}': {e}")
             return None
@@ -130,6 +136,19 @@ class Game:
         self.board.perform_move(move, player_num)
         print(f"Smart agent {sign} played at row {move[0]}, col {move[1]}")
 
+    # # Checks if a board state, or any of its rotations, already exists in the scoreboards.
+    @staticmethod
+    def get_optimized_board(board, score_boards):
+        # Generate and check keys for all 4 rotations
+        if not isinstance(board, np.ndarray):
+            board = np.array(board)
+        for i in range(4):
+            rotated_board = np.rot90(board, k=i)
+            rotated_key = "".join(map(str, rotated_board.flatten()))
+            if rotated_key in score_boards:
+                return rotated_key
+        return ""
+
     # Determine the right move for the smart agent
     def smart_decision(self, sign, dictionary):
         player_num = 1 if sign == 'X' else 2
@@ -145,10 +164,17 @@ class Game:
             simulated_board[move[0], move[1]] = player_num
 
             # generate string key from 2D array board values
-            key = "".join(str(item) for sublist in simulated_board.tolist() for item in sublist)
+            # key = "".join(str(item) for sublist in simulated_board.tolist() for item in sublist)
+            key = Game.get_optimized_board(simulated_board, self.score_boards)
 
-            # if the board state exists, retrieve its score
-            score = dictionary[key][0] if key in dictionary else 0
+            # if the board state exists, retrieve its score, otherwise raise an exception
+            try:
+                score = dictionary[key][0]
+            except Exception as e:
+                print(f"Error loading board '{key}' from dictionary:")
+                return None
+            
+            # score = dictionary[key][0] if key in dictionary else 0
 
             # If this move results in a better score, update the best score and best move
             if player_num == 1: # Maximize score for player 1 ('X')

@@ -51,7 +51,7 @@ class Tournament:
     def update_scoreboards(self, game_history):
         for row in game_history:
             value = row["gm"]
-            existing_key = self._does_board_exist(row["bd"])
+            existing_key = Game.get_optimized_board(row["bd"], self.scoreboards)
 
             if (existing_key == ""):
                 key = "".join(str(item) for sublist in row["bd"] for item in sublist)
